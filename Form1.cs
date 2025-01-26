@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace Sortowania_kol
 {
@@ -24,7 +26,7 @@ namespace Sortowania_kol
             Random rnd = new Random();
             for (int i = 0; i < 10; i++)
             {
-                tab[i] = rnd.Next(1, 100);
+                tab[i] = rnd.Next(-100, 100);
             }
             wynik.Text = string.Join(",", tab);
 
@@ -53,13 +55,12 @@ namespace Sortowania_kol
             for (int i = 1; i < tab.Length; i++)
             {
                 var klucz = tab[i];
-                for (int j = i - 1; j >= 0;)
+                for (int j = i - 1; j >= 0; j--)
                 {
                     if (klucz < tab[j])
                     {
                         tab[j + 1] = tab[j];
-                        j--;
-                        tab[j + 1] = klucz;
+                        tab[j] = klucz;
                     }
                     else break;
                 }
@@ -67,64 +68,46 @@ namespace Sortowania_kol
             wynik.Text = string.Join(",", tab);
         }
 
-        private void Selection_Click(object sender, EventArgs e)
+        private void Counting_Click_1(object sender, EventArgs e)
         {
-            for (int i = 0; i < tab.Length - 1; i++)
+            int min = int.MaxValue, max = int.MinValue;
+
+            for (int i = 0; i < tab.Length; i++)
             {
-                var min = i;
-                for (int j = i + 1; j < tab.Length; j++)
+                if (tab[i] < min)
                 {
-                    if (tab[j] < tab[min])
-                    {
-                        min = j;
-                    }
+                    min = tab[i];
                 }
-                var temp = tab[min];
-                tab[min] = tab[i];
-                tab[i] = temp;
-            }
-            wynik.Text = string.Join(",", tab);
-        }
-        private static int Maks(int[] tab)
-        {
-            int max = tab[0];
-            for(int i = 0;i<tab.Length;i++)
-            {
-                if (tab[i]> max)
+
+                if (tab[i] > max)
                 {
                     max = tab[i];
                 }
             }
-            return max;
 
-        }
-        private void Counting_Click_1(object sender, EventArgs e)
-        {
-            var max = Maks(tab);
-            var wyst = new int[max + 1];
-            for (int i = 0; i < max + 1; i++)
-            {
-                wyst[i] = 0;
-            }
+            int[] counts = new int[max - min + 1];
+
             for (int i = 0; i < tab.Length; i++)
             {
-                wyst[tab[i]]++;
+                counts[tab[i] - min]++;
             }
-            for (int i = 0, j = 0; i <= max; i++)
+
+            int k = 0;
+
+            for (int j = min; j <= max; j++)
             {
-                while (wyst[i] > 0)
+                for (int i = 0; i < counts[j - min]; i++)
                 {
-                    tab[j] = i;
-                    j++;
-                    wyst[i]--;
+                    tab[k++] = j;
                 }
             }
             wynik.Text = string.Join(",", tab);
         }
 
+
         private void Quick_Click(object sender, EventArgs e)
         {
-            Quick_sort(tab,0,tab.Length-1);
+            Quick_sort(tab, 0, tab.Length - 1);
             wynik.Text = string.Join(",", tab);
         }
         public int[] Quick_sort(int[] tab, int lewy, int prawy)
@@ -145,7 +128,7 @@ namespace Sortowania_kol
                 }
                 if (i <= j)
                 {
-                    int temp = tab[i];
+                    var temp = tab[i];
                     tab[i] = tab[j];
                     tab[j] = temp;
                     i++;
@@ -158,6 +141,55 @@ namespace Sortowania_kol
             if (i < prawy)
                 Quick_sort(tab, i, prawy);
             return tab;
+        }
+
+        private void merge_Click(object sender, EventArgs e)
+        {
+            MergeSort(tab);
+            wynik.Text = string.Join(",", tab);
+        }
+        public static void MergeSort(int[] tab)
+        {
+            if (tab.Length <= 1)
+                return;
+
+            int mid = tab.Length / 2;
+            int[] lewy = new int[mid];
+            int[] prawy = new int[tab.Length - mid];
+
+            Array.Copy(tab, 0, lewy, 0, mid);
+            Array.Copy(tab, mid, prawy, 0, tab.Length - mid);
+
+            MergeSort(lewy);
+            MergeSort(prawy);
+            Merge(tab, lewy, prawy);
+        }
+
+        private static void Merge(int[] tab, int[] lewy, int[] prawy)
+        {
+            int i = 0, j = 0, k = 0;
+
+            while (i < lewy.Length && j < prawy.Length)
+            {
+                if (lewy[i] <= prawy[j])
+                {
+                    tab[k++] = lewy[i++];
+                }
+                else
+                {
+                    tab[k++] = prawy[j++];
+                }
+            }
+
+            while (i < lewy.Length)
+            {
+                tab[k++] = lewy[i++];
+            }
+
+            while (j < prawy.Length)
+            {
+                tab[k++] = prawy[j++];
+            }
         }
     }
 }
